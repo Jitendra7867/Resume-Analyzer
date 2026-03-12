@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Comparison</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .version-box {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .version-box.current {
+            border-color: #00d2ff;
+        }
+
+        .version-label {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .version-score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+
+        .version-details {
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        .version-details div {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .diff-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .diff-indicator.positive {
+            background: rgba(0, 200, 83, 0.2);
+            color: #69f0ae;
+        }
+
+        .diff-indicator.negative {
+            background: rgba(198, 40, 40, 0.2);
+            color: #ff8a80;
+        }
+
+        .improvements-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .improvements-list li {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 8px;
+            background: rgba(0, 200, 83, 0.1);
+            border-left: 3px solid #69f0ae;
+        }
+
+        .declines-list li {
+            background: rgba(198, 40, 40, 0.1);
+            border-left-color: #ff8a80;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Resume Comparison</h1>
+            <a href="/history" class="back-btn">← Back to History</a>
+        </div>
+
+        {% if comparison %}
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #00d2ff;">Score Comparison</h2>
+            <div class="comparison-grid">
+                <div class="version-box">
+                    <div class="version-label">Previous Version</div>
+                    <div class="version-score" style="color: #888;">
+                        {{ comparison.compared.score }}
+                    </div>
+                    <div class="version-details">
+                        <div><strong>Grade:</strong> {{ comparison.compared.grade }}</div>
+                        <div><strong>Skills:</strong> {{ comparison.compared.skill_count }}</div>
+                        <div><strong>Date:</strong> {{ comparison.compared.timestamp[:10] }}</div>
+                    </div>
+                </div>
+
+                <div class="version-box current">
+                    <div class="version-label">Current Version</div>
+                    <div class="version-score">
+                        {{ comparison.latest.score }}
+                        {% if comparison.score_diff != 0 %}
+                        <span class="diff-indicator {{ 'positive' if comparison.score_diff > 0 else 'negative' }}">
+                            {{ '+' if comparison.score_diff > 0 else '' }}{{ comparison.score_diff|round(1) }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="version-details">
+                        <div><strong>Grade:</strong> {{ comparison.latest.grade }}</div>
+                        <div>
+                            <strong>Skills:</strong> {{ comparison.latest.skill_count }}
+                            {% if comparison.skill_diff != 0 %}
+                            <span class="diff-indicator {{ 'positive' if comparison.skill_diff > 0 else 'negative' }}">
+                                {{ '+' if comparison.skill_diff > 0 else '' }}{{ comparison.skill_diff }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div><strong>Date:</strong> {{ comparison.latest.timestamp[:10] }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if comparison.improvements.improvements or comparison.improvements.declines %}
+        <div class="card">
+            <h2 style="margin-bottom: 15px; color: #00d2ff;">Changes Detected</h2>
+            
+            {% if comparison.improvements.improvements %}
+            <h3 style="color: #69f0ae; margin-top: 20px; margin-bottom: 10px;">✅ Improvements</h3>
+            <ul class="improvements-list">
+                {% for improvement in comparison.improvements.improvements %}
+                <li>{{ improvement }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if comparison.improvements.declines %}
+            <h3 style="color: #ff8a80; margin-top: 20px; margin-bottom: 10px;">⚠️ Declines</h3>
+            <ul class="improvements-list declines-list">
+                {% for decline in comparison.improvements.declines %}
+                <li>{{ decline }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="card" style="text-align: center; padding: 60px 20px;">
+            <p style="color: #888;">{{ error or 'Not enough versions to compare. Upload more resumes!' }}</p>
+            <a href="/" class="back-btn" style="display: inline-block; margin-top: 20px;">
+                Upload Resume
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

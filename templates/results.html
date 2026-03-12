@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analysis Results</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #00d2ff;
+        }
+
+        /* Score Circle */
+        .score-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .score-circle {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+
+        .score-circle svg {
+            transform: rotate(-90deg);
+            width: 180px;
+            height: 180px;
+        }
+
+        .score-circle .bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.1);
+            stroke-width: 10;
+        }
+
+        .score-circle .progress {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .score-number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .score-grade {
+            font-size: 1.1em;
+            color: #aaa;
+        }
+
+        .score-bars { flex: 1; min-width: 300px; }
+
+        .score-bar-item {
+            margin-bottom: 12px;
+        }
+
+        .score-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .score-bar-track {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        /* Skills */
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .skill-tag {
+            background: rgba(58, 123, 213, 0.2);
+            border: 1px solid rgba(58, 123, 213, 0.4);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+        .skill-tag.soft {
+            background: rgba(0, 200, 83, 0.2);
+            border-color: rgba(0, 200, 83, 0.4);
+        }
+
+        .skill-tag.missing {
+            background: rgba(198, 40, 40, 0.2);
+            border-color: rgba(198, 40, 40, 0.4);
+            color: #ff8a80;
+        }
+
+        .skill-tag.matched {
+            background: rgba(0, 200, 83, 0.2);
+            border-color: rgba(0, 200, 83, 0.4);
+            color: #69f0ae;
+        }
+
+        /* Sections Checklist */
+        .checklist {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            font-size: 0.9em;
+        }
+
+        .check-item.found { color: #69f0ae; }
+        .check-item.missing { color: #ff8a80; }
+
+        /* Recommendations */
+        .recommendation {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+
+        .recommendation.HIGH { border-color: #ff5252; }
+        .recommendation.MEDIUM { border-color: #ffab40; }
+        .recommendation.LOW { border-color: #69f0ae; }
+
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .rec-category { font-weight: bold; font-size: 1.05em; }
+
+        .rec-priority {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .rec-priority.HIGH { background: rgba(255,82,82,0.2); color: #ff5252; }
+        .rec-priority.MEDIUM { background: rgba(255,171,64,0.2); color: #ffab40; }
+        .rec-priority.LOW { background: rgba(105,240,174,0.2); color: #69f0ae; }
+
+        .rec-message { color: #ccc; margin-bottom: 10px; font-size: 0.95em; }
+
+        .rec-tips { list-style: none; }
+        .rec-tips li {
+            padding: 4px 0;
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        .rec-tips li::before {
+            content: '💡 ';
+        }
+
+        /* Contact Info */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .contact-item {
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .contact-item label {
+            color: #888;
+            font-size: 0.8em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Action Verbs */
+        .verb-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .verb-tag {
+            background: rgba(156, 39, 176, 0.2);
+            border: 1px solid rgba(156, 39, 176, 0.4);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.82em;
+        }
+
+        /* Job Match */
+        .match-meter {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .match-percentage {
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .match-label {
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .two-col, .checklist, .score-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Analyze Another Resume</a>
+
+        <div class="header">
+            <h1>📊 Resume Analysis Results</h1>
+        </div>
+
+        <!-- ═══ OVERALL SCORE ═══ -->
+        <div class="card">
+            <h2>🏆 Overall Score</h2>
+            <div class="score-section">
+                <div class="score-circle">
+                    <svg viewBox="0 0 180 180">
+                        <circle class="bg" cx="90" cy="90" r="80"/>
+                        <circle class="progress" cx="90" cy="90" r="80"
+                                stroke="{{ score.grade.color }}"
+                                stroke-dasharray="{{ (score.total_score / 100 * 502.65)|round(1) }} 502.65"/>
+                    </svg>
+                    <div class="score-value">
+                        <div class="score-number" style="color: {{ score.grade.color }}">
+                            {{ score.total_score }}
+                        </div>
+                        <div class="score-grade">{{ score.grade.letter }} - {{ score.grade.label }}</div>
+                    </div>
+                </div>
+
+                <div class="score-bars">
+                    {% set bar_colors = {
+                        'skills': '#3a7bd5',
+                        'sections': '#00d2ff',
+                        'action_verbs': '#9c27b0',
+                        'achievements': '#ff9800',
+                        'formatting': '#4caf50',
+                        'job_match': '#f44336'
+                    } %}
+                    {% set bar_labels = {
+                        'skills': '🔧 Skills',
+                        'sections': '📋 Sections',
+                        'action_verbs': '💪 Action Verbs',
+                        'achievements': '📊 Achievements',
+                        'formatting': '📝 Formatting',
+                        'job_match': '🎯 Job Match'
+                    } %}
+                    {% for cat, val in score.category_scores.items() %}
+                    <div class="score-bar-item">
+                        <div class="score-bar-label">
+                            <span>{{ bar_labels.get(cat, cat) }}</span>
+                            <span>{{ val }}%</span>
+                        </div>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill"
+                                 style="width: {{ val }}%;
+                                        background: {{ bar_colors.get(cat, '#3a7bd5') }}">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ CONTACT INFO ═══ -->
+        <div class="card">
+            <h2>👤 Extracted Information</h2>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <label>Name</label>
+                    {{ contact.name or 'Not found' }}
+                </div>
+                <div class="contact-item">
+                    <label>Email</label>
+                    {{ contact.email or 'Not found' }}
+                </div>
+                <div class="contact-item">
+                    <label>Phone</label>
+                    {{ contact.phone or 'Not found' }}
+                </div>
+                <div class="contact-item">
+                    <label>Experience</label>
+                    {{ contact.experience_years }} years
+                </div>
+            </div>
+            {% if contact.education %}
+            <div style="margin-top: 15px;">
+                <label style="color: #888; font-size: 0.85em;">📚 Education</label>
+                {% for edu in contact.education[:3] %}
+                <p style="margin-top: 5px; color: #ccc; font-size: 0.9em;">• {{ edu }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ═══ SKILLS ═══ -->
+        <div class="card">
+            <h2>🔧 Skills Found ({{ analysis.skills.total_count }})</h2>
+
+            <h3 style="font-size: 0.95em; color: #aaa; margin-bottom: 10px;">
+                Technical Skills ({{ analysis.skills.technical|length }})
+            </h3>
+            <div class="skill-tags">
+                {% for skill in analysis.skills.technical %}
+                <span class="skill-tag">{{ skill }}</span>
+                {% endfor %}
+                {% if not analysis.skills.technical %}
+                <span style="color: #888;">No technical skills detected</span>
+                {% endif %}
+            </div>
+
+            <h3 style="font-size: 0.95em; color: #aaa; margin: 15px 0 10px;">
+                Soft Skills ({{ analysis.skills.soft|length }})
+            </h3>
+            <div class="skill-tags">
+                {% for skill in analysis.skills.soft %}
+                <span class="skill-tag soft">{{ skill }}</span>
+                {% endfor %}
+                {% if not analysis.skills.soft %}
+                <span style="color: #888;">No soft skills detected</span>
+                {% endif %}
+            </div>
+        </div>
+                <!-- ═══ ATS COMPATIBILITY ═══ -->
+        <div class="card">
+            <h2>🤖 ATS Compatibility Score</h2>
+            <div class="score-section" style="justify-content: center;">
+                <div class="score-circle">
+                    <svg viewBox="0 0 180 180">
+                        <circle class="bg" cx="90" cy="90" r="80"/>
+                        <circle class="progress" cx="90" cy="90" r="80"
+                                stroke="{{ ats.color }}"
+                                stroke-dasharray="{{ (ats.score / 100 * 502.65)|round(1) }} 502.65"/>
+                    </svg>
+                    <div class="score-value">
+                        <div class="score-number" style="color: {{ ats.color }}">
+                            {{ ats.score }}
+                        </div>
+                        <div class="score-grade">{{ ats.rating }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {% if ats.issues %}
+            <h3 style="font-size: 0.95em; color: #aaa; margin: 20px 0 10px;">⚠️ Issues Found</h3>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px;">
+                {% for issue in ats.issues %}
+                <p style="margin: 8px 0; color: #ff8a80; font-size: 0.9em;">{{ issue }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if ats.recommendations %}
+            <h3 style="font-size: 0.95em; color: #aaa; margin: 20px 0 10px;">💡 ATS Recommendations</h3>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px;">
+                {% for rec in ats.recommendations[:5] %}
+                <p style="margin: 8px 0; color: #69f0ae; font-size: 0.9em;">✓ {{ rec }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ═══ WRITING QUALITY ═══ -->
+        {% if grammar and grammar.grammar and grammar.grammar.available %}
+        <div class="card">
+            <h2>✍️ Writing Quality</h2>
+            
+            <div class="two-col">
+                <div>
+                    <h3 style="font-size: 0.95em; color: #aaa; margin-bottom: 10px;">Grammar & Spelling</h3>
+                    <p style="font-size: 2em; font-weight: bold; color: {{ grammar.grammar.rating.color }};">
+                        {{ grammar.grammar.quality_score }}/100
+                    </p>
+                    <p style="color: #aaa;">{{ grammar.grammar.total_errors }} issues detected</p>
+                </div>
+                
+                <div>
+                    <h3 style="font-size: 0.95em; color: #aaa; margin-bottom: 10px;">Readability</h3>
+                    <p style="font-size: 2em; font-weight: bold; color: #3a7bd5;">
+                        {{ grammar.readability.score }}/100
+                    </p>
+                    <p style="color: #aaa;">{{ grammar.readability.feedback }}</p>
+                </div>
+            </div>
+
+            {% if grammar.passive_voice.passive_count > 0 %}
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,171,64,0.1); border-radius: 10px;">
+                <p style="color: #ffab40;">
+                    <strong>⚠️ Passive Voice:</strong> 
+                    {{ grammar.passive_voice.passive_count }} instances found 
+                    ({{ grammar.passive_voice.passive_percentage }}%)
+                </p>
+                <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">
+                    {{ grammar.passive_voice.recommendation }}
+                </p>
+            </div>
+            {% endif %}
+
+            {% if grammar.buzzwords.total_buzzwords > 0 %}
+            <div style="margin-top: 15px; padding: 15px; background: rgba(255,82,82,0.1); border-radius: 10px;">
+                <p style="color: #ff8a80;">
+                    <strong>❌ Buzzwords:</strong> {{ grammar.buzzwords.total_buzzwords }} found
+                </p>
+                <div class="skill-tags" style="margin-top: 10px;">
+                    {% for bw in grammar.buzzwords.buzzwords[:10] %}
+                    <span class="skill-tag missing">{{ bw.word }} ({{ bw.count }}x)</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ═══ DOWNLOAD REPORT ═══ -->
+        <div class="card" style="text-align: center;">
+            <h2>📄 Download Full Report</h2>
+            <p style="color: #aaa; margin: 15px 0;">
+                Get a comprehensive PDF report with all analysis details
+            </p>
+            <a href="/download-report/{{ report_filename }}" 
+            class="btn" 
+            style="display: inline-block; text-decoration: none; max-width: 300px; margin: 0 auto;">
+                ⬇️ Download PDF Report
+            </a>
+        </div>
+
+        <!-- ═══ VERSION INFO ═══ -->
+        <div class="card" style="text-align: center; background: rgba(0,210,255,0.05);">
+            <p style="color: #00d2ff;">
+                ✅ Analysis saved as version #{{ version_number }}
+            </p>
+            <a href="/history" style="color: #3a7bd5; text-decoration: none; margin-top: 10px; display: inline-block;">
+                View your progress →
+            </a>
+        </div>
+
+        <!-- ═══ SECTIONS CHECK ═══ -->
+        <div class="card">
+            <h2>📋 Resume Sections</h2>
+            <div class="checklist">
+                {% for section, found in analysis.sections.items() %}
+                <div class="check-item {{ 'found' if found else 'missing' }}">
+                    {{ '✅' if found else '❌' }}
+                    {{ section|title }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ═══ ACTION VERBS ═══ -->
+        <div class="card">
+            <h2>💪 Action Verbs ({{ analysis.action_verbs|length }})</h2>
+            <div class="verb-tags">
+                {% for verb in analysis.action_verbs %}
+                <span class="verb-tag">{{ verb }}</span>
+                {% endfor %}
+                {% if not analysis.action_verbs %}
+                <span style="color: #888;">No strong action verbs found.
+                    Try using words like: Developed, Implemented, Led, Created</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ QUANTIFIED ACHIEVEMENTS ═══ -->
+        <div class="card">
+            <h2>📊 Quantified Achievements</h2>
+            <p style="color: #aaa; margin-bottom: 10px;">
+                Found <strong style="color: #00d2ff;">
+                {{ analysis.quantified_achievements.count }}</strong> measurable results
+            </p>
+            {% if analysis.quantified_achievements.examples %}
+            <div class="skill-tags">
+                {% for ex in analysis.quantified_achievements.examples %}
+                <span class="skill-tag">{{ ex }}</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: #ff8a80; font-size: 0.9em;">
+                ⚠️ No quantified achievements found. Add metrics like percentages,
+                dollar amounts, or user counts to strengthen your resume.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- ═══ JOB MATCH (if provided) ═══ -->
+        {% if job_description and analysis.job_match %}
+        <div class="card">
+            <h2>🎯 Job Description Match</h2>
+
+            <div class="two-col">
+                <div class="match-meter">
+                    <div class="match-percentage"
+                         style="color: {% if analysis.job_match.overall_match >= 60 %}#69f0ae
+                                       {% elif analysis.job_match.overall_match >= 40 %}#ffab40
+                                       {% else %}#ff5252{% endif %}">
+                        {{ analysis.job_match.overall_match }}%
+                    </div>
+                    <div class="match-label">Keyword Match</div>
+                </div>
+                <div class="match-meter">
+                    <div class="match-percentage"
+                         style="color: {% if analysis.job_match.skill_match >= 60 %}#69f0ae
+                                       {% elif analysis.job_match.skill_match >= 40 %}#ffab40
+                                       {% else %}#ff5252{% endif %}">
+                        {{ analysis.job_match.skill_match }}%
+                    </div>
+                    <div class="match-label">Skill Match
+                        ({{ analysis.job_match.matched_skill_count }}/{{ analysis.job_match.jd_skill_count }})
+                    </div>
+                </div>
+            </div>
+
+            {% if analysis.job_match.matched_skills %}
+            <h3 style="font-size: 0.95em; color: #aaa; margin: 15px 0 10px;">
+                ✅ Matched Skills
+            </h3>
+            <div class="skill-tags">
+                {% for skill in analysis.job_match.matched_skills %}
+                <span class="skill-tag matched">{{ skill }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if analysis.job_match.missing_skills %}
+            <h3 style="font-size: 0.95em; color: #aaa; margin: 15px 0 10px;">
+                ❌ Missing Skills
+            </h3>
+            <div class="skill-tags">
+                {% for skill in analysis.job_match.missing_skills %}
+                <span class="skill-tag missing">{{ skill }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ═══ RECOMMENDATIONS ═══ -->
+        {% if recommendations %}
+        <div class="card">
+            <h2>💡 Recommendations</h2>
+            {% for rec in recommendations %}
+            <div class="recommendation {{ rec.priority }}">
+                <div class="rec-header">
+                    <span class="rec-category">{{ rec.category }}</span>
+                    <span class="rec-priority {{ rec.priority }}">{{ rec.priority }}</span>
+                </div>
+                <p class="rec-message">{{ rec.message }}</p>
+                {% if rec.tips %}
+                <ul class="rec-tips">
+                    {% for tip in rec.tips %}
+                    <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ═══ FORMATTING INFO ═══ -->
+        <div class="card">
+            <h2>📝 Document Stats</h2>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <label>Word Count</label>
+                    {{ analysis.formatting.word_count }}
+                </div>
+                <div class="contact-item">
+                    <label>Line Count</label>
+                    {{ analysis.formatting.line_count }}
+                </div>
+                <div class="contact-item">
+                    <label>Issues Found</label>
+                    {{ analysis.formatting.issues|length }}
+                </div>
+                <div class="contact-item">
+                    <label>Technical Skills</label>
+                    {{ analysis.skills.technical|length }}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 650px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-link {
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .history-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .version-badge {
+            background: rgba(0, 210, 255, 0.2);
+            border: 1px solid rgba(0, 210, 255, 0.4);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #3a7bd5;
+            background: rgba(58, 123, 213, 0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: #00d2ff;
+            background: rgba(0, 210, 255, 0.1);
+        }
+
+        .upload-icon { font-size: 3em; margin-bottom: 10px; }
+        .upload-text { color: #ccc; font-size: 1.1em; }
+        .upload-hint { color: #888; font-size: 0.85em; margin-top: 8px; }
+
+        .file-name {
+            color: #00d2ff;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+
+        input[type="file"] { display: none; }
+
+        .jd-section { margin-bottom: 20px; }
+
+        .jd-toggle {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        .jd-toggle:hover {
+            border-color: #3a7bd5;
+            color: #fff;
+        }
+
+        .jd-content {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .jd-content.show { display: block; }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9em;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3a7bd5;
+        }
+
+        textarea::placeholder { color: #666; }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(58, 123, 213, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error {
+            background: rgba(198, 40, 40, 0.2);
+            border: 1px solid #c62828;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ff8a80;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .feature span { margin-right: 6px; }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #3a7bd5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-nav">
+            <div></div>
+            {% if has_history %}
+            <a href="/history" class="history-link">
+                📊 View History
+                <span class="version-badge">{{ version_count }} versions</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <h1>📄 Resume Analyzer Pro</h1>
+        <p class="subtitle">Get instant AI-powered analysis with ATS scoring</p>
+
+        {% if error %}
+        <div class="error">⚠️ {{ error }}</div>
+        {% endif %}
+
+        <form id="uploadForm" action="/analyze" method="POST" enctype="multipart/form-data">
+            <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📎</div>
+                <div class="upload-text">Drop your resume here or click to browse</div>
+                <div class="upload-hint">Supports PDF, DOCX, TXT (Max 16MB)</div>
+                <div class="file-name" id="fileName"></div>
+            </div>
+            <input type="file" id="fileInput" name="resume" accept=".pdf,.docx,.txt">
+
+            <div class="jd-section">
+                <button type="button" class="jd-toggle" onclick="toggleJD()">
+                    🎯 + Add Job Description (Optional)
+                </button>
+                <div class="jd-content" id="jdContent">
+                    <textarea name="job_description"
+                              placeholder="Paste the job description here to see how well your resume matches..."></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn" disabled>
+                🔍 Analyze Resume
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your resume...</p>
+            </div>
+        </form>
+
+        <div class="features">
+            <div class="feature"><span>🔧</span> Skill Detection</div>
+            <div class="feature"><span>📊</span> ATS Score</div>
+            <div class="feature"><span>✍️</span> Grammar Check</div>
+            <div class="feature"><span>📄</span> PDF Report</div>
+            <div class="feature"><span>🎯</span> Job Matching</div>
+            <div class="feature"><span>📈</span> Progress Tracking</div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('uploadForm');
+        const loading = document.getElementById('loading');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                fileName.textContent = '📄 ' + this.files[0].name;
+                fileName.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileName.textContent = '📄 ' + e.dataTransfer.files[0].name;
+                fileName.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+        });
+
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Analyzing...';
+            loading.style.display = 'block';
+        });
+
+        function toggleJD() {
+            const jd = document.getElementById('jdContent');
+            jd.classList.toggle('show');
+        }
+    </script>
+</body>
+</html>

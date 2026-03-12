@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume History</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+
+        .stat-label {
+            color: #aaa;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .timeline {
+            margin-top: 20px;
+        }
+
+        .timeline-item {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid #3a7bd5;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .timeline-date {
+            color: #888;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .timeline-score {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+
+        .timeline-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .timeline-detail {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .timeline-detail strong {
+            color: #fff;
+        }
+
+        .improvement-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .improvement-badge.positive {
+            background: rgba(0, 200, 83, 0.2);
+            color: #69f0ae;
+        }
+
+        .improvement-badge.negative {
+            background: rgba(198, 40, 40, 0.2);
+            color: #ff8a80;
+        }
+
+        .no-history {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .no-history-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Your Resume Progress</h1>
+            <a href="/" class="back-btn">← Back to Analyzer</a>
+        </div>
+
+        {% if history %}
+            {% if progress %}
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value">{{ progress.versions_count }}</div>
+                    <div class="stat-label">Total Analyses</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ progress.latest_score }}</div>
+                    <div class="stat-label">Current Score</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" 
+                         style="color: {% if progress.improvement > 0 %}#69f0ae{% elif progress.improvement < 0 %}#ff8a80{% else %}#aaa{% endif %}">
+                        {{ '+' if progress.improvement > 0 else '' }}{{ progress.improvement }}
+                    </div>
+                    <div class="stat-label">Total Improvement</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ progress.average_score }}</div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-bottom: 20px; color: #00d2ff;">Score Progression</h2>
+                <div class="chart-container">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <h2 style="margin-bottom: 20px; color: #00d2ff;">Analysis History</h2>
+                <div class="timeline">
+                    {% for version in history|reverse %}
+                    <div class="timeline-item">
+                        <div class="timeline-date">
+                            {{ version.timestamp[:10] }} at {{ version.timestamp[11:16] }}
+                        </div>
+                        <div class="timeline-score">
+                            {{ version.score }}/100
+                            <span style="font-size: 0.5em; color: #aaa;">
+                                ({{ version.grade }})
+                            </span>
+                            {% if loop.index0 > 0 %}
+                                {% set prev = history[-(loop.index0)] %}
+                                {% set diff = version.score - prev.score %}
+                                {% if diff != 0 %}
+                                <span class="improvement-badge {{ 'positive' if diff > 0 else 'negative' }}">
+                                    {{ '+' if diff > 0 else '' }}{{ diff|round(1) }}
+                                </span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="timeline-details">
+                            <div class="timeline-detail">
+                                <strong>{{ version.skill_count }}</strong> skills
+                            </div>
+                            <div class="timeline-detail">
+                                <strong>{{ version.action_verbs }}</strong> action verbs
+                            </div>
+                            <div class="timeline-detail">
+                                <strong>{{ version.achievements }}</strong> achievements
+                            </div>
+                            <div class="timeline-detail">
+                                File: {{ version.filename }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% else %}
+            <div class="card no-history">
+                <div class="no-history-icon">📭</div>
+                <h2>No Analysis History Yet</h2>
+                <p style="margin-top: 10px;">Upload your first resume to start tracking your progress!</p>
+                <a href="/" class="back-btn" style="display: inline-block; margin-top: 20px;">
+                    Upload Resume
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if progress %}
+    <script>
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ progress.dates|tojson }},
+                datasets: [{
+                    label: 'Resume Score',
+                    data: {{ progress.scores|tojson }},
+                    borderColor: '#3a7bd5',
+                    backgroundColor: 'rgba(58, 123, 213, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#00d2ff',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: '#aaa'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: '#aaa'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

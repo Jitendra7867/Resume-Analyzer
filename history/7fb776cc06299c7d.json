@@ -1,0 +1,59 @@
+[
+  {
+    "timestamp": "2026-03-12T20:55:26.553730",
+    "filename": "20260312_205526_Jitendra_swami_resume1_1.pdf",
+    "score": 63.8,
+    "grade": "B",
+    "category_scores": {
+      "skills": 85,
+      "sections": 90.0,
+      "action_verbs": 15,
+      "achievements": 50,
+      "formatting": 85,
+      "job_match": 20.0
+    },
+    "skill_count": 14,
+    "technical_skills": 13,
+    "soft_skills": 1,
+    "action_verbs": 1,
+    "achievements": 1
+  },
+  {
+    "timestamp": "2026-03-12T20:56:49.686200",
+    "filename": "20260312_205649_Jitendra_swami_resume1_1.pdf",
+    "score": 70.4,
+    "grade": "B+",
+    "category_scores": {
+      "skills": 85,
+      "sections": 90.0,
+      "action_verbs": 15,
+      "achievements": 50,
+      "formatting": 85,
+      "job_match": 86.7
+    },
+    "skill_count": 14,
+    "technical_skills": 13,
+    "soft_skills": 1,
+    "action_verbs": 1,
+    "achievements": 1
+  },
+  {
+    "timestamp": "2026-03-12T21:00:38.467217",
+    "filename": "20260312_210038_Jitendra_swami_resume1_1.pdf",
+    "score": 66.8,
+    "grade": "B",
+    "category_scores": {
+      "skills": 85,
+      "sections": 90.0,
+      "action_verbs": 15,
+      "achievements": 50,
+      "formatting": 85,
+      "job_match": 50
+    },
+    "skill_count": 14,
+    "technical_skills": 13,
+    "soft_skills": 1,
+    "action_verbs": 1,
+    "achievements": 1
+  }
+]

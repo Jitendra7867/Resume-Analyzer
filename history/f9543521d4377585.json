@@ -1,0 +1,21 @@
+[
+  {
+    "timestamp": "2026-03-12T20:48:11.562953",
+    "filename": "20260312_204803_Jitendra_swami_resume1_1.pdf",
+    "score": 67.5,
+    "grade": "B",
+    "category_scores": {
+      "skills": 100,
+      "sections": 90.0,
+      "action_verbs": 15,
+      "achievements": 50,
+      "formatting": 85,
+      "job_match": 20.0
+    },
+    "skill_count": 15,
+    "technical_skills": 14,
+    "soft_skills": 1,
+    "action_verbs": 1,
+    "achievements": 1
+  }
+]
